@@ -11,7 +11,7 @@
     "strict": true,
     "composite": true,
     "noEmit": true,
-    "noImplictAny": true
+    "noImplictAny": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
 
     "module": "ESNext",

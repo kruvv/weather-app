@@ -1,18 +1,58 @@
 <script lang="ts">
+import axios from 'axios'
+
 export default {
   data() {
     return {
       city: '',
+      error: '',
+      units: 'metric', //imperial
+      lang: 'ru',
+      info: null,
+      symbolUnit: '℃ ',
     }
   },
   methods: {
     clearInput() {
       this.city = ''
+      this.info = null
+    },
+    getWeather() {
+      if (this.city.trim().length <= 2) {
+        this.error = 'Для поиска необходимо ввести более 2-х символов'
+        return false
+      }
+      this.error = ''
+      axios
+        .get(
+          `${import.meta.env.VITE_VUE_APP_API_URL}q=${this.city}&units=${this.units}&lang=${this.lang}&appid=${import.meta.env.VITE_VUE_APP_SECRET_KEY}`,
+        )
+        .then((res) => {
+          this.info = res.data
+        })
+    },
+    editUnits() {
+      return this.units == 'metric' ? (this.symbolUnit = '℃ ') : (this.symbolUnit = '°F')
     },
   },
   computed: {
     cityName() {
       return `«${this.city}»`
+    },
+    showTemp() {
+      return `Температура: ${this.info.main.temp} ${this.symbolUnit}`
+    },
+
+    showFeelsLike() {
+      return `Ощущается как: ${this.info.main.feels_like} ${this.symbolUnit}`
+    },
+
+    showMinTemp() {
+      return `Минимальная температура: ${this.info.main.temp_min} ${this.symbolUnit}`
+    },
+
+    showMaxTemp() {
+      return `Максимальная емпература: ${this.info.main.temp_max} ${this.symbolUnit}`
     },
   },
 }
@@ -25,11 +65,33 @@ export default {
     <input type="text" v-model="city" placeholder="Введите город" />
     <button class="btn-clear" v-show="city != ''" @click="clearInput">x</button>
 
-    <button class="btn-send" v-show="city != ''">Запросить погоду</button>
+    <button class="btn-send" v-if="city != ''" @click="getWeather">Запросить погоду</button>
+    <p class="msg-error">{{ error }}</p>
+
+    <div class="info" v-if="info != null">
+      <input type="radio" id="C" value="C" name="units" checked />
+      <label for="C">℃ </label>
+      <input type="radio" id="F" value="F" name="units" />
+      <label for="F">°F</label>
+
+      <p>{{ showTemp }}</p>
+      <p>{{ showFeelsLike }}</p>
+      <p>{{ showMinTemp }}</p>
+      <p>{{ showMaxTemp }}</p>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.msg-error {
+  color: #f00;
+  font-size: 1.4rem;
+}
+
+.info {
+  margin-top: 40px;
+}
+
 .wrapper {
   position: relative;
   width: 900px;
