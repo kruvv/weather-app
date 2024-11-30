@@ -6,11 +6,20 @@ export default {
     return {
       city: '',
       error: '',
-      units: 'metric', //imperial
+      units: 'metric', //imperial | metric
       lang: 'ru',
       info: null,
       symbolUnit: '℃ ',
+      axiosError: {},
     }
+  },
+  watch: {
+    units(newUnits, oldUnits) {
+      if (newUnits != oldUnits) {
+        this.getWeather()
+        this.selectUnits()
+      }
+    },
   },
   methods: {
     clearInput() {
@@ -30,9 +39,14 @@ export default {
         .then((res) => {
           this.info = res.data
         })
+        .catch(function (err) {
+          if (err.response) {
+            console.error(err.response.data)
+          }
+        })
     },
-    editUnits() {
-      return this.units == 'metric' ? (this.symbolUnit = '℃ ') : (this.symbolUnit = '°F')
+    selectUnits() {
+      return (this.symbolUnit = this.units == 'metric' ? '℃ ' : '°F')
     },
   },
   computed: {
@@ -40,19 +54,25 @@ export default {
       return `«${this.city}»`
     },
     showTemp() {
-      return `Температура: ${this.info.main.temp} ${this.symbolUnit}`
+      return `Температура: ${Math.round(this.info.main.temp)} ${this.symbolUnit}`
     },
 
     showFeelsLike() {
-      return `Ощущается как: ${this.info.main.feels_like} ${this.symbolUnit}`
+      return `Ощущается как: ${Math.round(this.info.main.feels_like)} ${this.symbolUnit}`
     },
 
     showMinTemp() {
-      return `Минимальная температура: ${this.info.main.temp_min} ${this.symbolUnit}`
+      return `Минимальная температура: ${Math.round(this.info.main.temp_min)} ${this.symbolUnit}`
     },
 
     showMaxTemp() {
-      return `Максимальная емпература: ${this.info.main.temp_max} ${this.symbolUnit}`
+      return `Максимальная температура: ${Math.round(this.info.main.temp_max)} ${this.symbolUnit}`
+    },
+    showStatus() {
+      return this.axiosError?.cod
+    },
+    showStatusText() {
+      return this.axiosError?.message
     },
   },
 }
@@ -69,20 +89,31 @@ export default {
     <p class="msg-error">{{ error }}</p>
 
     <div class="info" v-if="info != null">
-      <input type="radio" id="C" value="C" name="units" checked />
-      <label for="C">℃ </label>
-      <input type="radio" id="F" value="F" name="units" />
-      <label for="F">°F</label>
+      <div class="units">
+        <input type="radio" id="unitC" value="metric" v-model="units" name="units" checked />
+        <label for="C">℃ </label>
+        <input type="radio" id="unitF" value="imperial" v-model="units" name="units" />
+        <label for="F">°F</label>
+      </div>
 
       <p>{{ showTemp }}</p>
       <p>{{ showFeelsLike }}</p>
       <p>{{ showMinTemp }}</p>
       <p>{{ showMaxTemp }}</p>
     </div>
+    <div class="axios-error" v-else-if="!axiosError">
+      <p>{{ showStatus }}</p>
+      <p>{{ showStatusText }}</p>
+    </div>
   </div>
 </template>
 
 <style scoped>
+#unitC,
+#unitF {
+  margin: 5px 5px 5px 15px;
+}
+
 .msg-error {
   color: #f00;
   font-size: 1.4rem;
@@ -151,5 +182,9 @@ export default {
   left: 480px;
   width: 20px;
   border-radius: 50%;
+}
+
+.btn-clear:hover {
+  cursor: pointer;
 }
 </style>
