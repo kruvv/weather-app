@@ -27,15 +27,18 @@ export default {
       this.info = null
     },
     getWeather() {
+      // Проверяем запрос
       if (this.city.trim().length <= 2) {
         this.error = 'Для поиска необходимо ввести более 2-х символов'
         return false
       }
+
       this.error = ''
+
+      // Делаем запрос к api
+      const URL_API = `${import.meta.env.VITE_VUE_APP_API_URL}q=${this.city}&units=${this.units}&lang=${this.lang}&appid=${import.meta.env.VITE_VUE_APP_SECRET_KEY}`
       axios
-        .get(
-          `${import.meta.env.VITE_VUE_APP_API_URL}q=${this.city}&units=${this.units}&lang=${this.lang}&appid=${import.meta.env.VITE_VUE_APP_SECRET_KEY}`,
-        )
+        .get(URL_API)
         .then((res) => {
           this.info = res.data
         })
@@ -51,8 +54,9 @@ export default {
   },
   computed: {
     cityName() {
-      return `«${this.city}»`
+      return `«${this.city.slice(0, 1).toUpperCase()}${this.city.slice(1)}»`
     },
+
     showTemp() {
       return `Температура: ${Math.round(this.info.main.temp)} ${this.symbolUnit}`
     },
@@ -68,9 +72,15 @@ export default {
     showMaxTemp() {
       return `Максимальная температура: ${Math.round(this.info.main.temp_max)} ${this.symbolUnit}`
     },
+
+    showHumidity() {
+      return `Влажность: ${Math.round(this.info.main.humidity)}%`
+    },
+
     showStatus() {
       return this.axiosError?.cod
     },
+
     showStatusText() {
       return this.axiosError?.message
     },
@@ -100,6 +110,7 @@ export default {
       <p>{{ showFeelsLike }}</p>
       <p>{{ showMinTemp }}</p>
       <p>{{ showMaxTemp }}</p>
+      <p>{{ showHumidity }}</p>
     </div>
     <div class="axios-error" v-else-if="!axiosError">
       <p>{{ showStatus }}</p>
